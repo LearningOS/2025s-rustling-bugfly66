@@ -1,0 +1,2 @@
+Map<core::slice::iter::Iter<'_, &str>, {closure@exercises/iterators/iterators2.rs:41:22: 41:28}>
+String: From<Map<std::slice::Iter<'_, &str>, {closure@exercises/iterators/iterators2.rs:41:22: 41:28}>>

@@ -1,0 +1,1 @@
+Map<std::slice::Iter<'_, Result<i32, DivisionError>>, fn(Result<_, _>) -> _ {Result::<_, _>::unwrap}>
