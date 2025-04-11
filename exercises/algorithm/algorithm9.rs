@@ -1,11 +1,19 @@
 /*
-	heap
-	This question requires you to implement a binary heap function
+    heap
+    This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
+
 
 use std::cmp::Ord;
 use std::default::Default;
+
+fn min_compare<T: Ord>(a: &T, b: &T) -> bool {
+    a < b
+}
+
+fn max_compare<T: Ord>(a: &T, b: &T) -> bool {
+    a > b
+}
 
 pub struct Heap<T>
 where
@@ -18,7 +26,7 @@ where
 
 impl<T> Heap<T>
 where
-    T: Default,
+    T: Default + Ord,
 {
     pub fn new(comparator: fn(&T, &T) -> bool) -> Self {
         Self {
@@ -37,7 +45,24 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.count += 1;
+        self.items.push(value);
+        let mut cur = self.count;
+
+        while cur > 0 {
+            let parent = self.parent_idx(cur);
+            if parent == 0 {
+                break;
+            }
+            if (self.is_min_heap() && self.items[cur] < self.items[parent])
+                || (self.is_max_heap() && self.items[cur] > self.items[parent])
+            {
+                self.items.swap(cur, parent);
+                cur = parent;
+            } else {
+                break;
+            }
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -56,9 +81,32 @@ where
         self.left_child_idx(idx) + 1
     }
 
+    fn largest_child_idx(&self, idx: usize) -> usize {
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+        if right <= self.count && self.items[right] > self.items[left] {
+            right
+        } else {
+            left
+        }
+    }
+
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+        if right <= self.count && self.items[right] < self.items[left] {
+            right
+        } else {
+            left
+        }
+    }
+
+    pub fn is_min_heap(&self) -> bool {
+        (self.comparator as usize) == (min_compare::<T> as usize)
+    }
+
+    pub fn is_max_heap(&self) -> bool {
+        (self.comparator as usize) == (max_compare::<T> as usize)
     }
 }
 
@@ -66,26 +114,47 @@ impl<T> Heap<T>
 where
     T: Default + Ord,
 {
-    /// Create a new MinHeap
     pub fn new_min() -> Self {
-        Self::new(|a, b| a < b)
+        Self::new(min_compare)
     }
 
-    /// Create a new MaxHeap
     pub fn new_max() -> Self {
-        Self::new(|a, b| a > b)
+        Self::new(max_compare)
     }
 }
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + Ord,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.count == 0 {
+            return None;
+        }
+        self.items.swap(1, self.count);
+        self.count -= 1;
+
+        let mut cur = 1;
+        while self.children_present(cur) {
+            let child = if self.is_min_heap() {
+                self.smallest_child_idx(cur)
+            } else {
+                self.largest_child_idx(cur)
+            };
+
+            if (self.is_min_heap() && self.items[child] < self.items[cur])
+                || (self.is_max_heap() && self.items[child] > self.items[cur])
+            {
+                self.items.swap(child, cur);
+                cur = child;
+            } else {
+                break;
+            }
+        }
+
+        self.items.pop()
     }
 }
 
@@ -97,7 +166,7 @@ impl MinHeap {
     where
         T: Default + Ord,
     {
-        Heap::new(|a, b| a < b)
+        Heap::new_min()
     }
 }
 
@@ -109,13 +178,14 @@ impl MaxHeap {
     where
         T: Default + Ord,
     {
-        Heap::new(|a, b| a > b)
+        Heap::new_max()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_empty_heap() {
         let mut heap = MaxHeap::new::<i32>();
@@ -129,6 +199,7 @@ mod tests {
         heap.add(2);
         heap.add(9);
         heap.add(11);
+
         assert_eq!(heap.len(), 4);
         assert_eq!(heap.next(), Some(2));
         assert_eq!(heap.next(), Some(4));

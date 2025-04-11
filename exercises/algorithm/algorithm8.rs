@@ -2,7 +2,6 @@
 	queue
 	This question requires you to use queues to implement the functionality of the stac
 */
-// I AM NOT DONE
 
 #[derive(Debug)]
 pub struct Queue<T> {
@@ -56,26 +55,81 @@ pub struct myStack<T>
 {
 	//TODO
 	q1:Queue<T>,
-	q2:Queue<T>
+	q2:Queue<T>,
+    size:usize
 }
 impl<T> myStack<T> {
     pub fn new() -> Self {
         Self {
 			//TODO
 			q1:Queue::<T>::new(),
-			q2:Queue::<T>::new()
+			q2:Queue::<T>::new(),
+            size:0
         }
     }
     pub fn push(&mut self, elem: T) {
         //TODO
+        if self.q1.size() != 0 {
+            self.q1.enqueue(elem);
+        }else {
+            self.q2.enqueue(elem);
+        }
+        self.size +=1;
     }
+    // pub fn pop(&mut self) -> Result<T, &str> {
+    //     //TODO
+    //     // if self.size == 0 {
+    //     //     return Err("Stack is empty");
+    //     // }
+	// 	// Err("Stack is empty")
+    //    //  while self.q1.size() > 0 {
+    //    //     let num = self.q1.dequeue()?;
+    //    //      if self.q1.size() !=0 {
+    //    //          self.q2.enqueue(num);
+    //    //      }
+    //    //      return Ok(num);
+    //    //  }
+    //    //  while self.q2.size() > 0 {
+    //    //      let num = self.q2.dequeue()?;
+    //    //      if self.q2.size() !=0 {
+    //    //          self.q1.enqueue(num);
+    //    //      }
+    //    //      return Ok(num);
+    //    //  }
+    //    //
+    //    //  self.size -=1;
+    //    // Err("Stack is empty")
+    // }
     pub fn pop(&mut self) -> Result<T, &str> {
-        //TODO
-		Err("Stack is empty")
+        if self.size == 0 {
+            return Err("Stack is empty");
+        }
+
+        // 确定主队列和辅助队列
+        let (main_q, aux_q) = if !self.q1.is_empty() {
+            (&mut self.q1, &mut self.q2)
+        } else {
+            (&mut self.q2, &mut self.q1)
+        };
+
+        // 转移元素，直到主队列只剩一个元素
+        while main_q.size() > 1 {
+            let elem = main_q.dequeue().unwrap();
+            aux_q.enqueue(elem);
+        }
+
+        // 弹出最后一个元素并更新栈大小
+        let popped = main_q.dequeue().unwrap();
+        self.size -= 1;
+
+        Ok(popped)
     }
     pub fn is_empty(&self) -> bool {
 		//TODO
-        true
+        if self.size == 0 {
+            return true
+        }
+        return false;
     }
 }
 
